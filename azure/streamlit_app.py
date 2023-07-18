@@ -1,22 +1,28 @@
 import streamlit as st
-from server import DataHandler
+from src.data_handler import DataHandler
 import base64
 from io import BytesIO
-from typing import Dict, List
+
+#TODO properly build out the persona templates and storage
+persona = ["Eris Bloom", "src/static/images/Eris0001.png"]
 
 
-persona: List[str] = ["Eris Bloom", "azure/static/images/Eris0001.png"]
-
-st.set_page_config: Dict[str, str] = dict(
+def set_page_config(
     page_title="Eris MischiefBloom",
     page_icon="🌺",
     layout="wide",
     initial_sidebar_state="expanded"
-)
+):
+    st.set_page_config(
+        page_title=page_title,
+        page_icon=page_icon,
+        layout=layout,
+        initial_sidebar_state=initial_sidebar_state
+    )
 
-st.title = (persona[0])
+st.title(persona[0])
 
-data_handler: DataHandler = DataHandler(persona[1]:List[str]=persona[1])
+data_handler: DataHandler = DataHandler(persona[1])
 
 blob_link: str = data_handler.handle_image()
 
@@ -34,20 +40,22 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Prompt"):
+if prompt := st.chat_input("prompt"):
     state_message = st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-
-with st.chat_message("assistant"):
-    message_placeholder = st.empty()
-    full_response = ""
-    for response in data_handler.handle_chat(prompt, role="user"):
-        full_response += response.choices[0].delta.get("content", "")
-        message_placeholder.markdown(f"{full_response} ▌")
-    message_placeholder.markdown(full_response)
-state_message = st.session_state.messages.append({
-    "role": "assistant",
-    "content": full_response
-    })
+if prompt is not None:
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
+        for response in data_handler.handle_chat(content=prompt, role="user"):
+            full_response += response.choices[0].delta.get("content", "")
+            message_placeholder.markdown(full_response + "▌")
+        message_placeholder.markdown(full_response)
+        message = {
+        "role": "assistant",
+        "content": full_response
+        }
+    data_handler.handle_ai_chat(message)
+    state_message = st.session_state.messages.append(message)
