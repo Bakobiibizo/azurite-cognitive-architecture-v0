@@ -43,6 +43,8 @@ class ContextWindow(Context):
         with open(self.history_path, "r") as f:
             history = json.loads(f.read())
         history.append(message)
+        if not history:
+            return "ERROR: No history"
         with open(self.history_path, "w") as f:
             f.write(json.dumps(self.context, default=lambda x: x.model_dump()))
 
